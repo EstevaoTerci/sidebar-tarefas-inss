@@ -1,6 +1,6 @@
 function onOpen(){
   SpreadsheetApp.getUi()
   .createMenu('INSS')
-  .addItem('Abrir Assistente', 'showSidebar')
+  .addItem('Assistente de visualização', 'showSidebar')
   .addToUi();
 }
