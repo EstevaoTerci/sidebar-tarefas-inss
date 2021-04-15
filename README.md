@@ -1,7 +1,8 @@
 ## Sidebar para google sheets
 
 
-![image](https://user-images.githubusercontent.com/40184342/114808463-b13df580-9d7e-11eb-90c6-3f27fffd97f6.png)
+![image](https://user-images.githubusercontent.com/40184342/114808508-cb77d380-9d7e-11eb-919d-88f769e1a209.png)
+
 
 
 
