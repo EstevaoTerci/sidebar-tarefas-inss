@@ -1,35 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <?!= include('Etiquetas-Stylesheet'); ?>
-</head>
-<body>
-  <h2>Etiquetas para caixa arquivo</h2>
-  <p>
-    Gera etiquetas padronizadas para as caixas do arquivo
-  </p>
-  
-  <div class="section1">
-    <label for="caixas-list">Escolha uma caixa</label><br>
-    <select id="caixas-list">
-      <option>Carregando...</option>
-    </select>
+<!-- Use a templated HTML printing scriptlet to import common stylesheet. -->
+<?!= HtmlService.createHtmlOutputFromFile('sidebar-view-css').getContent(); ?>
+<!-- Below is the HTML code that defines the sidebar element structure. -->
+<div class="sidebar branding-below">
+  <small>Para que a coluna seja listada aqui, coloque um "_" como último caractere do cabeçalho</small>
+  <!-- The div-table class is used to make a group of divs behave like a table. -->
+  <div class="block div-table" id="sidebar-record-block">
   </div>
-  <div>
-    <button id="submit-caixa" disabled>Gerar Etiqueta</button>   
-    <small id="loading-button">Carregando...</small> 
+  <div class="block" id="sidebar-button-bar">
   </div>
-  <p class="current" id="mensagens"></p>
-  <hr>
-  <div>
-    <h3 id="total"></h3>
-    <h2>Processos na Caixa:</h2>
-    <ul class="secondary" id='result'>
-    </ul>
-  </div>
-  
-  <?!= include('Etiquetas-JavaScript'); ?>
-</body>
+  <div id="sidebar-status"></div>
+</div>
 
+<!-- Enter sidebar bottom-branding below. -->
+<div class="sidebar bottom">
+  <img alt="Add-on logo" class="logo" width="25"
+      src="https://gdurl.com/BLuA">
+  <span class="gray branding-text">Visualizador de Registros - Estêvão - 2021</span>
+</div>
 
-</html>
+<!-- Use a templated HTML printing scriptlet to import JavaScript. -->
+<?!= HtmlService.createHtmlOutputFromFile('sidebar-view-js').getContent(); ?>

@@ -1,113 +1,105 @@
-<!-- Load the jQuery and jQuery UI libraries. -->
-<script src="https://code.jquery.com/jquery-1.8.3.min.js"></script>
-<script src="https://code.jquery.com/ui/1.10.0/jquery-ui.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script>
-    $(function() {
-        $('#caixas-list').bind('change', onChangeCaixaSelected);
-        $('#submit-caixa').bind('click', submit);
-        loadSheetData()
-    });
+  /**
+   * Run initializations on sidebar load.
+   */
+  $(function() {
+    // Assign handler functions to sidebar elements here, if needed.
 
-    /**
-     * Variaveis globais
-     * */
-    let caixas = null
-    let caixaSelected = null
+    $('.click-to-copy').on('click', () => {
+      console.log('click')
+    })
+    $( ".div-table-row" ).on( "click", ".click-to-copy", function() {
+       console.log( $( this ).text() );
+      });
 
-    function loadSheetData(){
-      showLoading()
+    // Call the server here to retrieve any information needed to build
+    // the dialog, if necessary.
+
+    // Start polling for updates        
+    poll();
+  });
+
+  /**
+   * Poll a server-side function at the given interval, to have
+   * results passed to a successHandler callback.
+   *
+   * https://stackoverflow.com/a/24773178/1677912
+   *
+   * @param {Number} interval   (optional) Time in ms between polls.
+   *                            Default is 2s (2000ms)
+   */
+  function poll(interval) {
+    interval = interval || 1000;
+    setTimeout(function() {
       google.script.run
-        .withSuccessHandler(showCaixasList)
-        .withFailureHandler(showMensagens)
-        .getCaixas();
-    }
+        .withSuccessHandler(showRecord)
+        .withFailureHandler(
+          function(msg, element) {
+            showStatus(msg, $('#button-bar'));
+            element.disabled = false;
+          })
+        .getRecord();
+    }, interval);
+  };
 
-    function onChangeCaixaSelected(){
-      showLoading()
-      caixaSelected = $('#caixas-list').val()
-      if(!caixaSelected){
-        $('#submit-caixa').prop('disabled', true)
-        showMensagens("Escolha uma caixa")
-      } else {
-        $('#submit-caixa').prop('disabled', false)
-        showMensagens("")
-        google.script.run
-            .withSuccessHandler(showBeneficiosPorCaixa)
-            .withFailureHandler(showMensagens)
-            .getBeneficiosPorCaixas(caixaSelected)
+  /**
+   * Callback function to display a "record", or row of the spreadsheet.
+   *
+   * @param {object[]}  Array of field headings & cell values
+   */
+  function showRecord(record) {
+    if (record.length) {
+      for (var i = 0; i < record.length; i++) {
+        // build field name on the fly, formatted field-1234
+        var str = '' + i;
+        var fieldId = 'field-' + ('0000' + str).substring(str.length)
+
+        // If this field # doesn't already exist on the page, create it
+        if (!$('#'+fieldId).length) {
+          var newField = $($.parseHTML('<div id="'+fieldId+'"></div>'));
+          $('#sidebar-record-block').append(newField);
+        }
+
+        // Replace content of the field div with new record
+        $('#'+fieldId).replaceWith('<div id="'+fieldId+'" class="div-table-row"></div>');
+        $('#'+fieldId).append($('<div class="div-table-th">' + record[i].heading + '</div>'))
+                      .append('<div class="div-table-td click-to-copy">' + record[i].cellval + '</div>');
       }
     }
 
-    /**
-     * Exibe a lista de caixas no select
-     * @param {Array} Lista de Nbs sem arquivo atribuído
-     */
-    function showCaixasList(data) {
-      const sheetData = JSON.parse(data)
-      caixas = ['', ...sheetData]
-      const select = $('#caixas-list');
-      select.empty();
-      caixas.forEach((caixa) => {
-        let option = $('<option>')
-          .attr('value', caixa)
-          .text(` ${caixa}` );
-        select.append(option);
+    $( ".div-table-row" ).on( "click", ".click-to-copy", function() {
+       copyToClipboard(this)
+       let copyMsg = $.parseHTML(`<p>Copiado: ${$(this).text()}</p>`)
+       showStatus(copyMsg, 'msg-success')
       });
-      hideLoading()
+      
+    function copyToClipboard(element) {
+      let $temp = $("<input>");
+      $("body").append($temp);
+      $temp.val($(element).text()).select();
+      document.execCommand("copy");
+      $temp.remove();
     }
 
-    function showBeneficiosPorCaixa(data){
-        const rowsData = JSON.parse(data)
-        $('#result').empty()
-        const total = (rowsData)?.length
-        $('#total').html(`No total são <b>${total}</b> processos nesta caixa`)
-        for(rowData of rowsData){
-            let urlFile = rowData?.Arquivo
-            let nb = rowData?.Especie + ' / ' + rowData?.Numero 
-            let html = `<li><a href="${urlFile}" target="_blank">${nb}</a></li>`
-            $('#result').append(html)
-        }
-        hideLoading()
-    }
+    // TODO: hide any existing fields that are beyond the current record length
 
-    function showMensagens(message) {
-      $('#mensagens').text(message)
-    }
+    //Setup the next poll
+    poll();
+  }
 
-    function disableInputs(){
-      $('#submit-caixa').prop('disabled', true)
-      $('#caixas-list').prop('disabled', true)
+  /**
+   * Displays the given status message in the sidebar.
+   *
+   * @param {String} msg The status message to display.
+   * @param {String} classId The message type (class id) that the message
+   *   should be displayed as.
+   */
+  function showStatus(msg, classId) {
+    $('#sidebar-status').removeClass().html(msg);
+    if (classId) {
+      $('#sidebar-status').addClass(classId);
     }
- 
-    function enableInputs(){
-      $('#submit-caixa').prop('disabled', true)
-      $('#caixas-list').prop('disabled', true)
-    }
+  }
 
-    function showLoading(){
-      $('#loading-button').prop('hidden', false)
-    }
-    
-    function hideLoading(){
-      $('#loading-button').prop('hidden', true)
-    }
-
-    function submit(){
-      showLoading()
-      disableInputs()
-      google.script.run
-        .withSuccessHandler(onSuccessSubmit)
-        .withFailureHandler(showMensagens)
-        .geraEtiqueta(caixaSelected)
-    }
-
-    function onSuccessSubmit(url){
-      hideLoading()
-      showMensagens('A etiqueta foi gerada com sucesso e será exibida em outra janela')
-      const html = `<p><b>Clique para ver a etiqueta: </b><a href="${url}" target="_blank">Link</a></p>`
-      $('#mensagens').append(html)
-      google.script.host.editor.focus()
-      window.open(url, '_blank')
-    }
-    
-  </script>
+</script>
