@@ -1,0 +1,113 @@
+<!-- Load the jQuery and jQuery UI libraries. -->
+<script src="https://code.jquery.com/jquery-1.8.3.min.js"></script>
+<script src="https://code.jquery.com/ui/1.10.0/jquery-ui.min.js"></script>
+<script>
+    $(function() {
+        $('#caixas-list').bind('change', onChangeCaixaSelected);
+        $('#submit-caixa').bind('click', submit);
+        loadSheetData()
+    });
+
+    /**
+     * Variaveis globais
+     * */
+    let caixas = null
+    let caixaSelected = null
+
+    function loadSheetData(){
+      showLoading()
+      google.script.run
+        .withSuccessHandler(showCaixasList)
+        .withFailureHandler(showMensagens)
+        .getCaixas();
+    }
+
+    function onChangeCaixaSelected(){
+      showLoading()
+      caixaSelected = $('#caixas-list').val()
+      if(!caixaSelected){
+        $('#submit-caixa').prop('disabled', true)
+        showMensagens("Escolha uma caixa")
+      } else {
+        $('#submit-caixa').prop('disabled', false)
+        showMensagens("")
+        google.script.run
+            .withSuccessHandler(showBeneficiosPorCaixa)
+            .withFailureHandler(showMensagens)
+            .getBeneficiosPorCaixas(caixaSelected)
+      }
+    }
+
+    /**
+     * Exibe a lista de caixas no select
+     * @param {Array} Lista de Nbs sem arquivo atribuído
+     */
+    function showCaixasList(data) {
+      const sheetData = JSON.parse(data)
+      caixas = ['', ...sheetData]
+      const select = $('#caixas-list');
+      select.empty();
+      caixas.forEach((caixa) => {
+        let option = $('<option>')
+          .attr('value', caixa)
+          .text(` ${caixa}` );
+        select.append(option);
+      });
+      hideLoading()
+    }
+
+    function showBeneficiosPorCaixa(data){
+        const rowsData = JSON.parse(data)
+        $('#result').empty()
+        const total = (rowsData)?.length
+        $('#total').html(`No total são <b>${total}</b> processos nesta caixa`)
+        for(rowData of rowsData){
+            let urlFile = rowData?.Arquivo
+            let nb = rowData?.Especie + ' / ' + rowData?.Numero 
+            let html = `<li><a href="${urlFile}" target="_blank">${nb}</a></li>`
+            $('#result').append(html)
+        }
+        hideLoading()
+    }
+
+    function showMensagens(message) {
+      $('#mensagens').text(message)
+    }
+
+    function disableInputs(){
+      $('#submit-caixa').prop('disabled', true)
+      $('#caixas-list').prop('disabled', true)
+    }
+ 
+    function enableInputs(){
+      $('#submit-caixa').prop('disabled', true)
+      $('#caixas-list').prop('disabled', true)
+    }
+
+    function showLoading(){
+      $('#loading-button').prop('hidden', false)
+    }
+    
+    function hideLoading(){
+      $('#loading-button').prop('hidden', true)
+    }
+
+    function submit(){
+      showLoading()
+      disableInputs()
+      google.script.run
+        .withSuccessHandler(onSuccessSubmit)
+        .withFailureHandler(showMensagens)
+        .geraEtiqueta(caixaSelected)
+    }
+
+    function onSuccessSubmit(url){
+      hideLoading()
+      showMensagens('A etiqueta foi gerada com sucesso e será exibida em outra janela')
+      const html = `<p><b>Clique para ver a etiqueta: </b><a href="${url}" target="_blank">Link</a></p>`
+      $('#mensagens').append(html)
+      google.script.host.editor.focus()
+      window.open(url, '_blank')
+    }
+    
+  </script>

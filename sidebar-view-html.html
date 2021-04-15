@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <?!= include('Etiquetas-Stylesheet'); ?>
+</head>
+<body>
+  <h2>Etiquetas para caixa arquivo</h2>
+  <p>
+    Gera etiquetas padronizadas para as caixas do arquivo
+  </p>
+  
+  <div class="section1">
+    <label for="caixas-list">Escolha uma caixa</label><br>
+    <select id="caixas-list">
+      <option>Carregando...</option>
+    </select>
+  </div>
+  <div>
+    <button id="submit-caixa" disabled>Gerar Etiqueta</button>   
+    <small id="loading-button">Carregando...</small> 
+  </div>
+  <p class="current" id="mensagens"></p>
+  <hr>
+  <div>
+    <h3 id="total"></h3>
+    <h2>Processos na Caixa:</h2>
+    <ul class="secondary" id='result'>
+    </ul>
+  </div>
+  
+  <?!= include('Etiquetas-JavaScript'); ?>
+</body>
+
+
+</html>
